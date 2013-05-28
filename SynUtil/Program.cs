@@ -10,6 +10,8 @@ namespace SynUtil
         private static string _host;
         private static int _port = 3734;
         private static int _terminalId;
+        private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(10);
+        private static bool _verbose;
 
         private static void Main(string[] args)
         {
@@ -37,9 +39,9 @@ namespace SynUtil
             }
 
             // verbose flag
-            var verbose = args.Contains("-v", StringComparer.OrdinalIgnoreCase);
-            if (verbose)
-                Trace.Listeners.Add(new ConsoleTraceListener());
+            _verbose = args.Contains("-v", StringComparer.OrdinalIgnoreCase);
+            if (_verbose)
+                Trace.Listeners.Add(new TimedConsoleTraceListener());
 
             // command
             try
@@ -111,7 +113,7 @@ namespace SynUtil
 
         private static void GetStatus()
         {
-            using (var client = SynelClient.Connect(_host, _port, _terminalId))
+            using (var client = SynelClient.Connect(_host, _port, _terminalId, Timeout))
             {
                 var info = client.Terminal.GetTerminalStatus();
                 Console.WriteLine();
@@ -136,7 +138,7 @@ namespace SynUtil
 
         private static void GetHardwareInfo()
         {
-            using (var client = SynelClient.Connect(_host, _port, _terminalId))
+            using (var client = SynelClient.Connect(_host, _port, _terminalId, Timeout))
             {
                 var info = client.Terminal.GetHardwareConfiguration();
                 Console.WriteLine();
@@ -155,7 +157,7 @@ namespace SynUtil
 
         private static void GetNetworkInfo()
         {
-            using (var client = SynelClient.Connect(_host, _port, _terminalId))
+            using (var client = SynelClient.Connect(_host, _port, _terminalId, Timeout))
             {
                 var info = client.Terminal.GetNetworkConfiguration();
                 Console.WriteLine();
@@ -177,7 +179,7 @@ namespace SynUtil
 
         private static void SetTime()
         {
-            using (var client = SynelClient.Connect(_host, _port, _terminalId))
+            using (var client = SynelClient.Connect(_host, _port, _terminalId, Timeout))
             {
                 var now = DateTime.Now;
                 client.Terminal.SetTerminalClock(now);
