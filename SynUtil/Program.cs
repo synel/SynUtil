@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Linq;
 using Syndll2;
 
@@ -18,8 +19,6 @@ namespace SynUtil
                 return;
             }
 
-            // TODO - better command input checking
-
             // host and port
             var arg0 = args[0].Split(':');
             _host = arg0[0];
@@ -37,42 +36,61 @@ namespace SynUtil
                 return;
             }
 
+            // verbose flag
+            var verbose = args.Contains("-v", StringComparer.OrdinalIgnoreCase);
+            if (verbose)
+                Trace.Listeners.Add(new ConsoleTraceListener());
+
             // command
-            var command = (args[1] == tidArg ? args[2] : args[1]).ToLowerInvariant();
-            switch (command)
+            try
             {
-                case "getstatus":
-                    GetStatus();
-                    break;
-                case "gethardwareinfo":
-                    GetHardwareInfo();
-                    break;
-                case "getnetworkinfo":
-                    GetNetworkInfo();
-                    break;
-                case "settime":
-                    SetTime();
-                    break;
-                default:
-                    {
-                        Console.WriteLine("Unsupported command.");
+                var command = args.Skip(1).First(x => !x.StartsWith("-")).ToLowerInvariant();
+                switch (command)
+                {
+                    case "getstatus":
+                        GetStatus();
                         break;
-                    }
+                    case "gethardwareinfo":
+                        GetHardwareInfo();
+                        break;
+                    case "getnetworkinfo":
+                        GetNetworkInfo();
+                        break;
+                    case "settime":
+                        SetTime();
+                        break;
+                    default:
+                        {
+                            Console.WriteLine("Unsupported command.");
+                            break;
+                        }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+
+                if (ex is TimeoutException)
+                    Console.WriteLine("Be sure that you specified the correct host, port, and terminal ID.");
             }
         }
 
         private static void DisplayHelpText()
         {
             Console.WriteLine();
+            Console.WriteLine("SynUtil v" + typeof(Program).Assembly.GetName().Version.ToString(3));
             Console.WriteLine("Command-line utility for SY7xx terminals, using Syndll2.");
+            Console.WriteLine("Copyright (C) 2013, Synel Industries Ltd.");
+            Console.WriteLine();
             Console.WriteLine("Usage:");
             Console.WriteLine();
-            Console.WriteLine("  SynUtil <host>[:port] [-t<terminal id>] <command> [arguments]");
+            Console.WriteLine("  SynUtil <host>[:port] [-t<terminal id>] [-v] <command> [arguments]");
             Console.WriteLine("");
             Console.WriteLine("Parameters:");
             Console.WriteLine("  host - The IP or DNS name of the terminal.");
             Console.WriteLine("  port - The TCP port to connect to.  Defaults to 3734.");
-            Console.WriteLine("  terminal id - The terminal id to use.  Defaults to 0.");
+            Console.WriteLine("  -t<terminal id> - The terminal id to use.  Defaults to 0.");
+            Console.WriteLine("  -v - Omits verbose debugging information.");
             Console.WriteLine("  command - The command to execute.");
             Console.WriteLine("  arguments - Any arguments required for the specific command.");
             Console.WriteLine();
@@ -96,6 +114,7 @@ namespace SynUtil
             using (var client = SynelClient.Connect(_host, _port, _terminalId))
             {
                 var info = client.Terminal.GetTerminalStatus();
+                Console.WriteLine();
                 Console.WriteLine("Hardware Model:      {0}", info.HardwareModel);
                 Console.WriteLine("Hardware Revision:   {0}", info.HardwareRevision);
                 Console.WriteLine("Firmware Version:    {0}", info.FirmwareVersion);
@@ -111,6 +130,7 @@ namespace SynUtil
                 Console.WriteLine("Polling Interval:    {0} seconds", info.PollingInterval.TotalSeconds);
                 Console.WriteLine("Transport Type:      {0}", info.TransportType.ToString().ToUpperInvariant());
                 Console.WriteLine("FPU Mode:            {0}", info.FingerprintUnitMode);
+                Console.WriteLine();
             }
         }
 
@@ -119,6 +139,7 @@ namespace SynUtil
             using (var client = SynelClient.Connect(_host, _port, _terminalId))
             {
                 var info = client.Terminal.GetHardwareConfiguration();
+                Console.WriteLine();
                 Console.WriteLine("Terminal ID:         {0}", info.TerminalId);
                 Console.WriteLine("Terminal Type:       {0}", info.TerminalType);
                 Console.WriteLine("Firmware Version:    {0} ({1:d})", info.FirmwareVersion, info.FirmwareDate);
@@ -128,6 +149,7 @@ namespace SynUtil
                 Console.WriteLine("FPU Mode:            {0}", info.FingerprintUnitMode);
                 Console.WriteLine("Serial Port Info:    {0} {1}", info.HostSerialBaudRate, info.HostSerialParameters.ToUpperInvariant());
                 Console.WriteLine("User Defined Field:  {0}", info.UserDefinedField);
+                Console.WriteLine();
             }
         }
 
@@ -136,6 +158,7 @@ namespace SynUtil
             using (var client = SynelClient.Connect(_host, _port, _terminalId))
             {
                 var info = client.Terminal.GetNetworkConfiguration();
+                Console.WriteLine();
                 Console.WriteLine("Network Card:        {0} (ver {1})", info.NetworkCardType, info.NetworkCardFirmwareVersion);
                 Console.WriteLine("Transport Type:      {0}", info.TransportType.ToString().ToUpperInvariant());
                 Console.WriteLine("MAC Address:         {0}", info.TerminalMACAddress);
@@ -148,6 +171,7 @@ namespace SynUtil
                 Console.WriteLine("Polling Enabled:     {0}", info.EnablePolling);
                 Console.WriteLine("DHCP Enabled:        {0}", info.EnableDHCP);
                 Console.WriteLine("MAC Sending Enabled: {0}", info.EnableSendMAC);
+                Console.WriteLine();
             }
         }
 
