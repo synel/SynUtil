@@ -10,7 +10,7 @@ namespace SynUtil
         private static string _host;
         private static int _port = 3734;
         private static int _terminalId;
-        private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(10);
+        private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(15);
         private static bool _verbose;
 
         private static void Main(string[] args)
