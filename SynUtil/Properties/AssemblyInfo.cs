@@ -7,5 +7,5 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyProduct("SynUtil")]
 [assembly: AssemblyCopyright("Copyright © 2013, Synel Industries Ltd.")]
 [assembly: ComVisible(false)]
-[assembly: AssemblyVersion("1.0.3")]
-[assembly: AssemblyFileVersion("1.0.3.3")]
+[assembly: AssemblyVersion("1.0.4")]
+[assembly: AssemblyFileVersion("1.0.4.4")]
