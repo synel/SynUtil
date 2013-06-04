@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using Syndll2;
 
@@ -46,8 +47,9 @@ namespace SynUtil
             // command
             try
             {
-                var command = args.Skip(1).First(x => !x.StartsWith("-")).ToLowerInvariant();
-                switch (command)
+                var command = args.Skip(1).First(x => !x.StartsWith("-"));
+                var commandIndex = Array.IndexOf(args, command);
+                switch (command.ToLowerInvariant())
                 {
                     case "getstatus":
                         GetStatus();
@@ -60,6 +62,13 @@ namespace SynUtil
                         break;
                     case "settime":
                         SetTime();
+                        break;
+                    case "upload":
+                        var path = args.Skip(commandIndex + 1).FirstOrDefault(x => !x.StartsWith("-"));
+                        if (string.IsNullOrEmpty(path))
+                            Console.WriteLine("Pass the path of the file to upload.");
+                        else
+                            UploadFile(path);
                         break;
                     default:
                         {
@@ -102,6 +111,7 @@ namespace SynUtil
             Console.WriteLine("  getnetworkinfo   - Displays the terminal's network information.");
             Console.WriteLine("  settime          - Sets the terminal's date and time to the");
             Console.WriteLine("                     current date and time of this computer.");
+            Console.WriteLine("  upload <file>    - Uploads an RDY file to the terminal.");
             Console.WriteLine();
             Console.WriteLine("Examples:");
             Console.WriteLine("  SynUtil 1.2.3.4 getstatus");
@@ -185,6 +195,68 @@ namespace SynUtil
                 client.Terminal.SetTerminalClock(now);
                 Console.WriteLine("Set the terminal clock to {0:g}", now);
             }
+        }
+
+        private static void UploadFile(string path)
+        {
+            using (var client = SynelClient.Connect(_host, _port, _terminalId, Timeout))
+            using (var p = client.Terminal.Programming())
+            {
+                Console.CursorVisible = false;
+
+                string filename = null;
+
+                if (!_verbose)
+                {
+                    p.ProgressChanged += (sender, args) =>
+                        {
+                            if (filename != args.Filename)
+                            {
+                                filename = args.Filename;
+                                Console.WriteLine();
+                                Console.Write("Uploading {0} ", filename.PadRight(12, ' '));
+                            }
+
+                            const int barSize = 50;
+
+                            DrawProgressBar(args.CurrentBlock, args.TotalBlocks, barSize);
+
+                            if (args.CurrentBlock == args.TotalBlocks)
+                            {
+                                Console.CursorLeft += barSize + 1;
+                                Console.Write("Complete!");
+                            }
+                        };
+                }
+
+                p.UploadTableFromFile(Path.GetFullPath(path));
+
+                if (!_verbose)
+                {
+                    Console.WriteLine();
+                    Console.CursorVisible = true;
+                }
+            }
+        }
+
+        private static void DrawProgressBar(int current, int total, int barSize)
+        {
+            const char character = '\u2592';
+
+            var left = Console.CursorLeft;
+            var percent = (double)current / total;
+            var chars = (int)Math.Floor(percent * barSize);
+            
+            var originalColor = Console.ForegroundColor;
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.Write(new string(character, chars));
+            Console.ForegroundColor = ConsoleColor.DarkGreen;
+            Console.Write(new string(character, barSize - chars));
+            Console.ForegroundColor = originalColor;
+            var pct = string.Format(" {0:N2}%", percent*100);
+            Console.Write(pct.PadRight(12));
+            Console.Write("[{0}/{1}]", current, total);
+            Console.CursorLeft = left;
         }
     }
 }
