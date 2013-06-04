@@ -49,6 +49,8 @@ namespace SynUtil
             {
                 var command = args.Skip(1).First(x => !x.StartsWith("-"));
                 var commandIndex = Array.IndexOf(args, command);
+                var commandArg = args.Skip(commandIndex + 1).FirstOrDefault(x => !x.StartsWith("-"));
+
                 switch (command.ToLowerInvariant())
                 {
                     case "getstatus":
@@ -63,12 +65,23 @@ namespace SynUtil
                     case "settime":
                         SetTime();
                         break;
+                    case "eraseallmemory":
+                        EraseAllMemory();
+                        break;
+                    case "deletealltables":
+                        DeleteAllTables();
+                        break;
+                    case "deletetable":
+                        if (string.IsNullOrEmpty(commandArg))
+                            Console.WriteLine("Pass the table type and id to delete.  Example:  deletetable x001");
+                        else
+                            DeleteTable(commandArg);
+                        break;
                     case "upload":
-                        var path = args.Skip(commandIndex + 1).FirstOrDefault(x => !x.StartsWith("-"));
-                        if (string.IsNullOrEmpty(path))
+                        if (string.IsNullOrEmpty(commandArg))
                             Console.WriteLine("Pass the path of the file to upload.");
                         else
-                            UploadFile(path);
+                            UploadFile(commandArg);
                         break;
                     default:
                         {
@@ -106,12 +119,15 @@ namespace SynUtil
             Console.WriteLine("  arguments - Any arguments required for the specific command.");
             Console.WriteLine();
             Console.WriteLine("Commands:");
-            Console.WriteLine("  getstatus        - Displays the terminal's status information.");
-            Console.WriteLine("  gethardwareinfo  - Displays the terminal's hardware information.");
-            Console.WriteLine("  getnetworkinfo   - Displays the terminal's network information.");
-            Console.WriteLine("  settime          - Sets the terminal's date and time to the");
-            Console.WriteLine("                     current date and time of this computer.");
-            Console.WriteLine("  upload <file>    - Uploads an RDY file to the terminal.");
+            Console.WriteLine("  getstatus           - Displays the terminal's status information.");
+            Console.WriteLine("  gethardwareinfo     - Displays the terminal's hardware information.");
+            Console.WriteLine("  getnetworkinfo      - Displays the terminal's network information.");
+            Console.WriteLine("  settime             - Sets the terminal's date and time to the");
+            Console.WriteLine("                        current date and time of this computer.");
+            Console.WriteLine("  upload <file>       - Uploads an RDY file to the terminal.");
+            Console.WriteLine("  deletetable <tXXX>  - Deletes a specific table from the terminal.");
+            Console.WriteLine("  deletealltables     - Deletes all tables from the terminal.");
+            Console.WriteLine("  eraseallmemory      - Erases all of the terminal's memory.");
             Console.WriteLine();
             Console.WriteLine("Examples:");
             Console.WriteLine("  SynUtil 1.2.3.4 getstatus");
@@ -194,6 +210,50 @@ namespace SynUtil
                 var now = DateTime.Now;
                 client.Terminal.SetTerminalClock(now);
                 Console.WriteLine("Set the terminal clock to {0:g}", now);
+            }
+        }
+
+        private static void DeleteTable(string tableName)
+        {
+            if (tableName.Length != 4)
+            {
+                Console.WriteLine("Invalid table name.");
+                return;
+            }
+
+            var type = tableName[0];
+            int id;
+            if (!int.TryParse(tableName.Substring(1), out id))
+            {
+                Console.WriteLine("Invalid table name.");
+                return;
+            }
+
+            using (var client = SynelClient.Connect(_host, _port, _terminalId, Timeout))
+            using (var p = client.Terminal.Programming())
+            {
+                p.DeleteTable(type, id);
+                Console.WriteLine("Sent command to delete table {0} from the terminal.", tableName);
+            }
+        }
+
+        private static void DeleteAllTables()
+        {
+            using (var client = SynelClient.Connect(_host, _port, _terminalId, Timeout))
+            using (var p = client.Terminal.Programming())
+            {
+                p.DeleteAllTables();
+                Console.WriteLine("Sent command to delete all tables from the terminal.");
+            }
+        }
+
+        private static void EraseAllMemory()
+        {
+            using (var client = SynelClient.Connect(_host, _port, _terminalId, Timeout))
+            using (var p = client.Terminal.Programming())
+            {
+                p.EraseAllMemoryFromTerminal();
+                Console.WriteLine("Sent command to erase all memory from the terminal.");
             }
         }
 
