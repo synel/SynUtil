@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using Syndll2;
@@ -50,7 +51,7 @@ namespace SynUtil
             {
                 var command = args.Skip(1).First(x => !x.StartsWith("-"));
                 var commandIndex = Array.IndexOf(args, command);
-                var commandArgs = args.Skip(commandIndex + 1).Where(x => !x.StartsWith("-"));
+                var commandArgs = args.Skip(commandIndex + 1).Where(x => !x.StartsWith("-")).ToArray();
                 var commandArg = commandArgs.FirstOrDefault();
 
                 switch (command.ToLowerInvariant())
@@ -68,7 +69,7 @@ namespace SynUtil
                         GetFingerprintInfo();
                         break;
                     case "settime":
-                        SetTime();
+                        SetTime(commandArgs);
                         break;
                     case "eraseallmemory":
                         EraseAllMemory();
@@ -132,8 +133,10 @@ namespace SynUtil
             Console.WriteLine();
             Console.WriteLine("  getfingerprintinfo - Displays the terminal's fingerprint information.");
             Console.WriteLine();
-            Console.WriteLine("  settime            - Sets the terminal's date and time to the");
-            Console.WriteLine("                       current date and time of this computer.");
+            Console.WriteLine("  settime [YYYY-MM-DD HH:MM:SS]");
+            Console.WriteLine("                     - Sets the terminal's date and time.");
+            Console.WriteLine("                       Pass the date and time desired, or leave blank");
+            Console.WriteLine("                       to use the current date and time of this computer.");
             Console.WriteLine();
             Console.WriteLine("  deletetable <tXXX> - Deletes a specific table from the terminal.");
             Console.WriteLine();
@@ -238,13 +241,25 @@ namespace SynUtil
             }
         }
 
-        private static void SetTime()
+        private static void SetTime(string[] commandArgs)
         {
+            DateTime dt;
+            if (commandArgs.Length == 0)
+            {
+                dt = DateTime.Now;
+            }
+            else if (commandArgs.Length != 2 ||
+                     !DateTime.TryParseExact(string.Join(" ", commandArgs), "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture, DateTimeStyles.None, out dt))
+            {
+                Console.WriteLine("Leave blank to set the current time from this computer,");
+                Console.WriteLine("or pass in YYYY-MM-DD HH:MM:SS format.");
+                return;
+            }
+
             using (var client = SynelClient.Connect(_host, _port, _terminalId, Timeout))
             {
-                var now = DateTime.Now;
-                client.Terminal.SetTerminalClock(now);
-                Console.WriteLine("Set the terminal clock to {0:g}", now);
+                client.Terminal.SetTerminalClock(dt);
+                Console.WriteLine("Set the terminal clock to {0:g}", dt);
             }
         }
 
@@ -328,7 +343,7 @@ namespace SynUtil
                 {
                     var directory = Path.GetDirectoryName(path);
                     var pattern = Path.GetFileName(path);
-                    
+
                     if (directory == null || pattern == null)
                         continue;
 
@@ -341,7 +356,7 @@ namespace SynUtil
                         p.UploadTableFromFile(thisPath);
                     }
                 }
-                
+
 
                 if (!_verbose)
                 {
@@ -358,14 +373,14 @@ namespace SynUtil
             var left = Console.CursorLeft;
             var percent = (double)current / total;
             var chars = (int)Math.Floor(percent * barSize);
-            
+
             var originalColor = Console.ForegroundColor;
             Console.ForegroundColor = ConsoleColor.Green;
             Console.Write(new string(character, chars));
             Console.ForegroundColor = ConsoleColor.DarkGreen;
             Console.Write(new string(character, barSize - chars));
             Console.ForegroundColor = originalColor;
-            var pct = string.Format(" {0:N2}%", percent*100);
+            var pct = string.Format(" {0:N2}%", percent * 100);
             Console.Write(pct.PadRight(12));
             Console.Write("[{0}/{1}]", current, total);
             Console.CursorLeft = left;
