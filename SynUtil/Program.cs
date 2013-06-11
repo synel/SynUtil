@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -49,7 +50,8 @@ namespace SynUtil
             {
                 var command = args.Skip(1).First(x => !x.StartsWith("-"));
                 var commandIndex = Array.IndexOf(args, command);
-                var commandArg = args.Skip(commandIndex + 1).FirstOrDefault(x => !x.StartsWith("-"));
+                var commandArgs = args.Skip(commandIndex + 1).Where(x => !x.StartsWith("-"));
+                var commandArg = commandArgs.FirstOrDefault();
 
                 switch (command.ToLowerInvariant())
                 {
@@ -79,9 +81,9 @@ namespace SynUtil
                         break;
                     case "upload":
                         if (string.IsNullOrEmpty(commandArg))
-                            Console.WriteLine("Pass the path of the file to upload.");
+                            Console.WriteLine("Pass the path(s) of the file(s) to upload.");
                         else
-                            UploadFile(commandArg);
+                            UploadFile(commandArgs);
                         break;
                     default:
                         {
@@ -119,15 +121,25 @@ namespace SynUtil
             Console.WriteLine("  arguments - Any arguments required for the specific command.");
             Console.WriteLine();
             Console.WriteLine("Commands:");
-            Console.WriteLine("  getstatus           - Displays the terminal's status information.");
-            Console.WriteLine("  gethardwareinfo     - Displays the terminal's hardware information.");
-            Console.WriteLine("  getnetworkinfo      - Displays the terminal's network information.");
-            Console.WriteLine("  settime             - Sets the terminal's date and time to the");
-            Console.WriteLine("                        current date and time of this computer.");
-            Console.WriteLine("  upload <file>       - Uploads an RDY file to the terminal.");
-            Console.WriteLine("  deletetable <tXXX>  - Deletes a specific table from the terminal.");
-            Console.WriteLine("  deletealltables     - Deletes all tables from the terminal.");
-            Console.WriteLine("  eraseallmemory      - Erases all of the terminal's memory.");
+            Console.WriteLine("  getstatus          - Displays the terminal's status information.");
+            Console.WriteLine();
+            Console.WriteLine("  gethardwareinfo    - Displays the terminal's hardware information.");
+            Console.WriteLine();
+            Console.WriteLine("  getnetworkinfo     - Displays the terminal's network information.");
+            Console.WriteLine();
+            Console.WriteLine("  settime            - Sets the terminal's date and time to the");
+            Console.WriteLine("                       current date and time of this computer.");
+            Console.WriteLine();
+            Console.WriteLine("  deletetable <tXXX> - Deletes a specific table from the terminal.");
+            Console.WriteLine();
+            Console.WriteLine("  deletealltables    - Deletes all tables from the terminal.");
+            Console.WriteLine();
+            Console.WriteLine("  eraseallmemory     - Erases all of the terminal's memory.");
+            Console.WriteLine();
+            Console.WriteLine("  upload <file1> [file2] [file3] [...] ");
+            Console.WriteLine("                     - Uploads one or more RDY files to the terminal.");
+            Console.WriteLine("                       Supports wildcards and dirXXX files also.");
+            Console.WriteLine();
             Console.WriteLine();
             Console.WriteLine("Examples:");
             Console.WriteLine("  SynUtil 1.2.3.4 getstatus");
@@ -257,7 +269,7 @@ namespace SynUtil
             }
         }
 
-        private static void UploadFile(string path)
+        private static void UploadFile(IEnumerable<string> paths)
         {
             using (var client = SynelClient.Connect(_host, _port, _terminalId, Timeout))
             using (var p = client.Terminal.Programming())
@@ -289,7 +301,24 @@ namespace SynUtil
                         };
                 }
 
-                p.UploadTableFromFile(Path.GetFullPath(path));
+                foreach (var path in paths)
+                {
+                    var directory = Path.GetDirectoryName(path);
+                    var pattern = Path.GetFileName(path);
+                    
+                    if (directory == null || pattern == null)
+                        continue;
+
+                    var fullDir = Path.GetFullPath(directory);
+                    var files = Directory.GetFiles(fullDir, pattern).OrderBy(x => x);
+
+                    foreach (var file in files)
+                    {
+                        var thisPath = Path.Combine(fullDir, file);
+                        p.UploadTableFromFile(thisPath);
+                    }
+                }
+                
 
                 if (!_verbose)
                 {
