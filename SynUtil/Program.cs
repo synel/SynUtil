@@ -64,6 +64,9 @@ namespace SynUtil
                     case "getnetworkinfo":
                         GetNetworkInfo();
                         break;
+                    case "getfingerprintinfo":
+                        GetFingerprintInfo();
+                        break;
                     case "settime":
                         SetTime();
                         break;
@@ -126,6 +129,8 @@ namespace SynUtil
             Console.WriteLine("  gethardwareinfo    - Displays the terminal's hardware information.");
             Console.WriteLine();
             Console.WriteLine("  getnetworkinfo     - Displays the terminal's network information.");
+            Console.WriteLine();
+            Console.WriteLine("  getfingerprintinfo - Displays the terminal's fingerprint information.");
             Console.WriteLine();
             Console.WriteLine("  settime            - Sets the terminal's date and time to the");
             Console.WriteLine("                       current date and time of this computer.");
@@ -211,6 +216,24 @@ namespace SynUtil
                 Console.WriteLine("Polling Enabled:     {0}", info.EnablePolling);
                 Console.WriteLine("DHCP Enabled:        {0}", info.EnableDHCP);
                 Console.WriteLine("MAC Sending Enabled: {0}", info.EnableSendMAC);
+                Console.WriteLine();
+            }
+        }
+
+        private static void GetFingerprintInfo()
+        {
+            using (var client = SynelClient.Connect(_host, _port, _terminalId, Timeout))
+            using (var p = client.Terminal.Programming())
+            {
+                var status = p.Fingerprint.GetUnitStatus();
+                Console.WriteLine();
+                Console.WriteLine("Comparison Mode:   {0}", status.ComparisonMode);
+                Console.WriteLine("Kernel Version:    {0}", new object[] { status.KernelVersion });
+                Console.WriteLine("Loaded Templates:  {0}", status.LoadedTemplates);
+                Console.WriteLine("Maximum Templates: {0}", status.MaximumTemplates);
+                Console.WriteLine("FPU Mode:          {0}", status.FingerprintUnitMode);
+                Console.WriteLine("Global Threshold:  {0}", status.GlobalThreshold);
+                Console.WriteLine("Enroll Mode:       {0}", status.EnrollMode);
                 Console.WriteLine();
             }
         }
