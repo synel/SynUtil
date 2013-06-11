@@ -277,7 +277,7 @@ namespace SynUtil
                                 Console.Write("Uploading {0} ", filename.PadRight(12, ' '));
                             }
 
-                            const int barSize = 50;
+                            const int barSize = 30;
 
                             DrawProgressBar(args.CurrentBlock, args.TotalBlocks, barSize);
 
