@@ -16,6 +16,12 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		README.md = README.md
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".ilmerge", ".ilmerge", "{8EDC53C0-74C0-4B40-AC3B-7101336F8222}"
+	ProjectSection(SolutionItems) = preProject
+		.ilmerge\Ilmerge.CSharp.targets = .ilmerge\Ilmerge.CSharp.targets
+		.ilmerge\ILMerge.exe = .ilmerge\ILMerge.exe
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
