@@ -71,8 +71,8 @@ namespace SynUtil
                     case "settime":
                         SetTime(commandArgs);
                         break;
-                    case "eraseallmemory":
-                        EraseAllMemory();
+                    case "fixmemcrash":
+                        FixMemCrash();
                         break;
                     case "deletealltables":
                         DeleteAllTables();
@@ -142,7 +142,9 @@ namespace SynUtil
             Console.WriteLine();
             Console.WriteLine("  deletealltables    - Deletes all tables from the terminal.");
             Console.WriteLine();
-            Console.WriteLine("  eraseallmemory     - Erases all of the terminal's memory.");
+            Console.WriteLine("  fixmemcrash        - Erases all of the terminal's memory, which will");
+            Console.WriteLine("                       put a terminal that is \"Mem Crashed\" back into");
+            Console.WriteLine("                       \"No Prog\" mode.");
             Console.WriteLine();
             Console.WriteLine("  upload <file1> [file2] [file3] [...] ");
             Console.WriteLine("                     - Uploads one or more RDY files to the terminal.");
@@ -297,13 +299,13 @@ namespace SynUtil
             }
         }
 
-        private static void EraseAllMemory()
+        private static void FixMemCrash()
         {
             using (var client = SynelClient.Connect(_host, _port, _terminalId, Timeout))
             using (var p = client.Terminal.Programming())
             {
-                p.EraseAllMemoryFromTerminal();
-                Console.WriteLine("Sent command to erase all memory from the terminal.");
+                p.FixMemCrash();
+                Console.WriteLine("Sent command to fix terminal memcrash.");
             }
         }
 
