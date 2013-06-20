@@ -4,6 +4,8 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Net.Sockets;
+using System.Threading;
 using Syndll2;
 
 namespace SynUtil
@@ -18,37 +20,52 @@ namespace SynUtil
 
         private static void Main(string[] args)
         {
-            if (args.Length < 2)
-            {
-                DisplayHelpText();
-                return;
-            }
-
-            // host and port
-            var arg0 = args[0].Split(':');
-            _host = arg0[0];
-            if (arg0.Length == 2 && !int.TryParse(arg0[1], out _port))
-            {
-                Console.WriteLine("Invalid Port.");
-                return;
-            }
-
-            // terminal id
-            var tidArg = args.FirstOrDefault(x => x.StartsWith("-t", StringComparison.OrdinalIgnoreCase));
-            if (tidArg != null && (tidArg.Length < 3 || !int.TryParse(tidArg.Substring(2), out _terminalId)))
-            {
-                Console.WriteLine("Invalid Terminal ID.");
-                return;
-            }
-
-            // verbose flag
-            _verbose = args.Contains("-v", StringComparer.OrdinalIgnoreCase);
-            if (_verbose)
-                Trace.Listeners.Add(new TimedConsoleTraceListener());
-
-            // command
             try
             {
+                // verbose flag
+                _verbose = args.Contains("-v", StringComparer.OrdinalIgnoreCase);
+                if (_verbose)
+                    Trace.Listeners.Add(new TimedConsoleTraceListener());
+
+                // server mode is special input
+                if (args.Contains("listen", StringComparer.InvariantCultureIgnoreCase))
+                {
+                    // port is optional
+                    int i;
+                    var p = args.FirstOrDefault(x => int.TryParse(x, out i));
+                    if (p != null)
+                        _port = int.Parse(p);
+
+                    var acknowledge = args.Any(x => x.StartsWith("ack", StringComparison.InvariantCultureIgnoreCase));
+                    Listen(acknowledge);
+
+                    return;
+                }
+
+                if (args.Length < 2)
+                {
+                    DisplayHelpText();
+                    return;
+                }
+
+                // host and port
+                var arg0 = args[0].Split(':');
+                _host = arg0[0];
+                if (arg0.Length == 2 && !int.TryParse(arg0[1], out _port))
+                {
+                    Console.WriteLine("Invalid Port.");
+                    return;
+                }
+
+                // terminal id
+                var tidArg = args.FirstOrDefault(x => x.StartsWith("-t", StringComparison.OrdinalIgnoreCase));
+                if (tidArg != null && (tidArg.Length < 3 || !int.TryParse(tidArg.Substring(2), out _terminalId)))
+                {
+                    Console.WriteLine("Invalid Terminal ID.");
+                    return;
+                }
+
+                // command
                 var command = args.Skip(1).First(x => !x.StartsWith("-"));
                 var commandIndex = Array.IndexOf(args, command);
                 var commandArgs = args.Skip(commandIndex + 1).Where(x => !x.StartsWith("-")).ToArray();
@@ -89,11 +106,31 @@ namespace SynUtil
                         else
                             UploadFile(commandArgs);
                         break;
+                    case "getdata":
+                        GetData();
+                        break;
+                    case "resetdata":
+                        ResetData();
+                        break;
+                    case "cleardata":
+                        ClearData();
+                        break;
                     default:
                         {
                             Console.WriteLine("Unsupported command.");
                             break;
                         }
+                }
+            }
+            catch (SocketException ex)
+            {
+                if (ex.SocketErrorCode == SocketError.AddressAlreadyInUse)
+                {
+                    Console.WriteLine("Another application is already listening on port {0}.", _port);
+                }
+                else
+                {
+                    Console.WriteLine(ex.Message);
                 }
             }
             catch (Exception ex)
@@ -115,6 +152,8 @@ namespace SynUtil
             Console.WriteLine("Usage:");
             Console.WriteLine();
             Console.WriteLine("  SynUtil <host>[:port] [-t<id>] [-v] <command> [arguments]");
+            Console.WriteLine("or");
+            Console.WriteLine("  SynUtil listen [port] [ack]");
             Console.WriteLine("");
             Console.WriteLine("Parameters:");
             Console.WriteLine("  host      - The IP or DNS name of the terminal.");
@@ -146,10 +185,23 @@ namespace SynUtil
             Console.WriteLine("                       put a terminal that is \"Mem Crashed\" back into");
             Console.WriteLine("                       \"No Prog\" mode.");
             Console.WriteLine();
-            Console.WriteLine("  upload <file1> [file2] [file3] [...] ");
+            Console.WriteLine("  upload <file1> [file2] [file3] [...]");
             Console.WriteLine("                     - Uploads one or more RDY files to the terminal.");
             Console.WriteLine("                       Supports wildcards and dirXXX files also.");
             Console.WriteLine();
+            Console.WriteLine("  getdata            - Gets transaction data from the terminal.");
+            Console.WriteLine();
+            Console.WriteLine("  resetdata          - Resets all transactions in the terminal's memory,");
+            Console.WriteLine("                       so that they can be sent again.");
+            Console.WriteLine();
+            Console.WriteLine("  cleardata          - Clears all transactions from the terminal's memory");
+            Console.WriteLine("                       that have already been acknowledged.");
+            Console.WriteLine();
+            Console.WriteLine();
+            Console.WriteLine("  listen [port] [ack]");
+            Console.WriteLine("                     - Acts as a server, listening for incoming data.");
+            Console.WriteLine("                       Listens on port 3734 if not specified.");
+            Console.WriteLine("                       Optionally pass \"ack\" to acknowledge receipt.");
             Console.WriteLine();
             Console.WriteLine("Examples:");
             Console.WriteLine("  SynUtil 1.2.3.4 getstatus");
@@ -181,6 +233,38 @@ namespace SynUtil
                 Console.WriteLine("Transport Type:      {0}", info.TransportType.ToString().ToUpperInvariant());
                 Console.WriteLine("FPU Mode:            {0}", info.FingerprintUnitMode);
                 Console.WriteLine();
+            }
+        }
+
+        private static void Listen(bool acknowledge)
+        {
+            Console.WriteLine();
+            Console.WriteLine("Listening on port {0}.  Press Ctrl-C to terminate.", _port);
+            Console.WriteLine();
+
+            // todo: doesn't work on command prompt, but works in VS????
+
+            using (SynelServer.Listen(_port, notification =>
+                {
+                    if (notification.Data == null)
+                        return;
+
+                    Console.Write("{0:yyyy-MM-dd HH:mm:sszzz} [{1}|{2}]  {3}",
+                                  DateTimeOffset.Now,
+                                  notification.RemoteEndPoint.Address,
+                                  notification.TerminalId,
+                                  notification.Data);
+
+                    if (acknowledge)
+                    {
+                        notification.Acknowledege();
+                        Console.Write("  [ACKNOWLEDGED]");
+                    }
+
+                    Console.WriteLine();
+                }))
+            {
+                Thread.Sleep(-1);
             }
         }
 
@@ -269,6 +353,7 @@ namespace SynUtil
         {
             if (tableName.Length != 4)
             {
+                Console.WriteLine();
                 Console.WriteLine("Invalid table name.");
                 return;
             }
@@ -277,6 +362,7 @@ namespace SynUtil
             int id;
             if (!int.TryParse(tableName.Substring(1), out id))
             {
+                Console.WriteLine();
                 Console.WriteLine("Invalid table name.");
                 return;
             }
@@ -285,6 +371,7 @@ namespace SynUtil
             using (var p = client.Terminal.Programming())
             {
                 p.DeleteTable(type, id);
+                Console.WriteLine();
                 Console.WriteLine("Sent command to delete table {0} from the terminal.", tableName);
             }
         }
@@ -295,6 +382,7 @@ namespace SynUtil
             using (var p = client.Terminal.Programming())
             {
                 p.DeleteAllTables();
+                Console.WriteLine();
                 Console.WriteLine("Sent command to delete all tables from the terminal.");
             }
         }
@@ -305,6 +393,7 @@ namespace SynUtil
             using (var p = client.Terminal.Programming())
             {
                 p.FixMemCrash();
+                Console.WriteLine();
                 Console.WriteLine("Sent command to fix terminal memcrash.");
             }
         }
@@ -386,6 +475,46 @@ namespace SynUtil
             Console.Write(pct.PadRight(12));
             Console.Write("[{0}/{1}]", current, total);
             Console.CursorLeft = left;
+        }
+
+        private static void GetData()
+        {
+            using (var client = SynelClient.Connect(_host, _port, _terminalId, Timeout))
+            {
+                Console.WriteLine();
+                string item;
+                bool gotData = false;
+                while ((item = client.Terminal.GetDataAndAcknowledge()) != null)
+                {
+                    Console.WriteLine(item);
+                    gotData = true;
+                }
+                if (!gotData)
+                {
+                    Console.WriteLine("The terminal has no transaction data to send.");
+                }
+                
+            }
+        }
+
+        private static void ResetData()
+        {
+            using (var client = SynelClient.Connect(_host, _port, _terminalId, Timeout))
+            {
+                client.Terminal.ResetBuffer();
+                Console.WriteLine();
+                Console.WriteLine("Data has been reset.");
+            }
+        }
+
+        private static void ClearData()
+        {
+            using (var client = SynelClient.Connect(_host, _port, _terminalId, Timeout))
+            {
+                client.Terminal.ClearBuffer();
+                Console.WriteLine();
+                Console.WriteLine("Data has been cleared.");
+            }
         }
     }
 }
