@@ -409,12 +409,13 @@ namespace SynUtil
 
                 if (!_verbose)
                 {
+                    Console.WriteLine();
+
                     p.ProgressChanged += (sender, args) =>
                         {
                             if (filename != args.Filename)
                             {
                                 filename = args.Filename;
-                                Console.WriteLine();
                                 Console.Write("Uploading {0} ", filename.PadRight(12, ' '));
                             }
 
@@ -425,7 +426,7 @@ namespace SynUtil
                             if (args.CurrentBlock == args.TotalBlocks)
                             {
                                 Console.CursorLeft += barSize + 1;
-                                Console.Write("Complete!");
+                                Console.WriteLine("Complete!");
                             }
                         };
                 }
@@ -451,7 +452,6 @@ namespace SynUtil
 
                 if (!_verbose)
                 {
-                    Console.WriteLine();
                     Console.CursorVisible = true;
                 }
             }
