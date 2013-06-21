@@ -17,6 +17,7 @@ namespace SynUtil
         private static int _terminalId;
         private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(15);
         private static bool _verbose;
+        private static bool _force;
 
         private static void Main(string[] args)
         {
@@ -65,6 +66,9 @@ namespace SynUtil
                     return;
                 }
 
+                // force flag
+                _force = args.Contains("-f", StringComparer.OrdinalIgnoreCase);
+                
                 // command
                 var command = args.Skip(1).First(x => !x.StartsWith("-"));
                 var commandIndex = Array.IndexOf(args, command);
@@ -185,9 +189,10 @@ namespace SynUtil
             Console.WriteLine("                       put a terminal that is \"Mem Crashed\" back into");
             Console.WriteLine("                       \"No Prog\" mode.");
             Console.WriteLine();
-            Console.WriteLine("  upload <file1> [file2] [file3] [...]");
+            Console.WriteLine("  upload <file1> [file2] [file3] [...] [-f]");
             Console.WriteLine("                     - Uploads one or more RDY files to the terminal.");
             Console.WriteLine("                       Supports wildcards and dirXXX files also.");
+            Console.WriteLine("                       Pass -f to force upload of files that fail validation.");
             Console.WriteLine();
             Console.WriteLine("  getdata            - Gets transaction data from the terminal.");
             Console.WriteLine();
@@ -455,7 +460,7 @@ namespace SynUtil
                             continue;
                         
                         var thisPath = Path.Combine(fullDir, file);
-                        p.UploadTableFromFile(thisPath);
+                        p.UploadTableFromFile(thisPath, force: _force);
                     }
                 }
 
