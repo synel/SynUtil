@@ -237,6 +237,7 @@ namespace SynUtil
                 Console.WriteLine("Polling Interval:    {0} seconds", info.PollingInterval.TotalSeconds);
                 Console.WriteLine("Transport Type:      {0}", info.TransportType.ToString().ToUpperInvariant());
                 Console.WriteLine("FPU Mode:            {0}", info.FingerprintUnitMode);
+                Console.WriteLine("User Defined Field:  {0}", info.UserDefinedField);
                 Console.WriteLine();
             }
         }
