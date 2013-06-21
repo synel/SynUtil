@@ -407,6 +407,8 @@ namespace SynUtil
 
                 string filename = null;
 
+                var uniqueFiles = new List<string>();
+
                 if (!_verbose)
                 {
                     Console.WriteLine();
@@ -417,6 +419,7 @@ namespace SynUtil
                             {
                                 filename = args.Filename;
                                 Console.Write("Uploading {0} ", filename.PadRight(12, ' '));
+                                uniqueFiles.Add(filename);
                             }
 
                             const int barSize = 30;
@@ -439,11 +442,18 @@ namespace SynUtil
                     if (directory == null || pattern == null)
                         continue;
 
+                    // get files, sorting directory files first.
                     var fullDir = Path.GetFullPath(directory);
-                    var files = Directory.GetFiles(fullDir, pattern).OrderBy(x => x);
+                    var files = Directory.GetFiles(fullDir, pattern)
+                                         .OrderBy(x => (x.StartsWith("dir", StringComparison.OrdinalIgnoreCase) ? "0" : "1") + x);
 
                     foreach (var file in files)
                     {
+                        // skip files we've already uploaded
+                        var thisFilename = Path.GetFileName(file);
+                        if (thisFilename == null || uniqueFiles.Contains(thisFilename, StringComparer.OrdinalIgnoreCase))
+                            continue;
+                        
                         var thisPath = Path.Combine(fullDir, file);
                         p.UploadTableFromFile(thisPath);
                     }
