@@ -141,6 +141,22 @@ namespace SynUtil
                     case "setfingerenrollment":
                         SetFingerEnrollment(commandArg);
                         break;
+                    case "listfinger":
+                    case "listfingers":
+                        ListFingerprintTemplates();
+                        break;
+                    case "getfinger":
+                    case "getfingers":
+                        GetFingerprintTemplates(commandArg);
+                        break;
+                    case "sendfinger":
+                    case "sendfingers":
+                        SendFingerprintTemplates(commandArgs);
+                        break;
+                    case "deletefinger":
+                    case "deletefingers":
+                        DeleteFingerprintTemplates(commandArg);
+                        break;
 
                     default:
                         {
@@ -342,6 +358,26 @@ namespace SynUtil
                 p.Fingerprint.SetEnrollMode(mode);
                 Console.WriteLine("Set the fingerprint enroll mode to {0}.", mode);
             }
+        }
+
+        private static void ListFingerprintTemplates()
+        {
+            throw new NotImplementedException();
+        }
+
+        private static void GetFingerprintTemplates(string arg)
+        {
+            throw new NotImplementedException();
+        }
+
+        private static void SendFingerprintTemplates(string[] args)
+        {
+            throw new NotImplementedException();
+        }
+
+        private static void DeleteFingerprintTemplates(string arg)
+        {
+            throw new NotImplementedException();
         }
 
         private static void SetTime(string[] commandArgs)

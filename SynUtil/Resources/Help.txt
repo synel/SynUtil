@@ -65,6 +65,25 @@ Fingerprint Commands:
   setfingerenrollment <Once|Twice|Dual>
                      - Sets the fingerprint enrollment mode.
 
+  listfingers        - Lists the fingerprint templates that are on the terminal.
+
+  getfinger <badgenumber|all> [directory]
+                     - Gets any fingerprint templates for the given badge number.
+                       Pass "all" to get all fingerprint templates on the terminal.
+                       Optionally pass a directory of where the fingerprint
+                       files should be written to.  (Defaults to the current
+                       directory if not specified.)
+
+  sendfinger <file1> [file2] [file3] [...]
+                     - Sends one or more fingerprint templates to the terminal.
+                       Files should be named <badgenumber>.fg*.
+                       For example: 1234567890.fg0
+                       Supports wildcard paths also.
+
+  deletefinger <badgenumber|all>
+                     - Deletes fingerprint templates for a badge number,
+                       or pass "all" to delete all fingerprint templates.
+
 Server Commands:
 
   listen [port] [ack]
