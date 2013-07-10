@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Net.Sockets;
 using System.Threading;
+using SynUtil.Properties;
 using Syndll2;
 
 namespace SynUtil
@@ -148,72 +149,9 @@ namespace SynUtil
 
         private static void DisplayHelpText()
         {
-            Console.WriteLine();
-            Console.WriteLine("SynUtil v" + typeof(Program).Assembly.GetName().Version.ToString(3));
-            Console.WriteLine("Command-line utility for SY7xx terminals, using Syndll2.");
-            Console.WriteLine("Copyright (C) 2013, Synel Industries Ltd.");
-            Console.WriteLine();
-            Console.WriteLine("Usage:");
-            Console.WriteLine();
-            Console.WriteLine("  SynUtil <host>[:port] [-t<id>] [-v] <command> [arguments]");
-            Console.WriteLine("or");
-            Console.WriteLine("  SynUtil listen [port] [ack]");
-            Console.WriteLine("");
-            Console.WriteLine("Parameters:");
-            Console.WriteLine("  host      - The IP or DNS name of the terminal.");
-            Console.WriteLine("  port      - The TCP port to connect to.  Defaults to 3734.");
-            Console.WriteLine("  -t<id>    - The terminal id to use.  Defaults to 0.");
-            Console.WriteLine("  -v        - Emits verbose debugging information.");
-            Console.WriteLine("  command   - The command to execute.");
-            Console.WriteLine("  arguments - Any arguments required for the specific command.");
-            Console.WriteLine();
-            Console.WriteLine("Commands:");
-            Console.WriteLine("  getstatus          - Displays the terminal's status information.");
-            Console.WriteLine();
-            Console.WriteLine("  gethardwareinfo    - Displays the terminal's hardware information.");
-            Console.WriteLine();
-            Console.WriteLine("  getnetworkinfo     - Displays the terminal's network information.");
-            Console.WriteLine();
-            Console.WriteLine("  getfingerprintinfo - Displays the terminal's fingerprint information.");
-            Console.WriteLine();
-            Console.WriteLine("  settime [YYYY-MM-DD HH:MM:SS]");
-            Console.WriteLine("                     - Sets the terminal's date and time.");
-            Console.WriteLine("                       Pass the date and time desired, or leave blank");
-            Console.WriteLine("                       to use the current date and time of this computer.");
-            Console.WriteLine();
-            Console.WriteLine("  deletetable <tXXX> - Deletes a specific table from the terminal.");
-            Console.WriteLine();
-            Console.WriteLine("  deletealltables    - Deletes all tables from the terminal.");
-            Console.WriteLine();
-            Console.WriteLine("  fixmemcrash        - Erases all of the terminal's memory, which will");
-            Console.WriteLine("                       put a terminal that is \"Mem Crashed\" back into");
-            Console.WriteLine("                       \"No Prog\" mode.");
-            Console.WriteLine();
-            Console.WriteLine("  upload <file1> [file2] [file3] [...] [-f]");
-            Console.WriteLine("                     - Uploads one or more RDY files to the terminal.");
-            Console.WriteLine("                       Supports wildcards and dirXXX files also.");
-            Console.WriteLine("                       Pass -f to force upload of files that fail validation.");
-            Console.WriteLine();
-            Console.WriteLine("  getdata            - Gets transaction data from the terminal.");
-            Console.WriteLine();
-            Console.WriteLine("  resetdata          - Resets all transactions in the terminal's memory,");
-            Console.WriteLine("                       so that they can be sent again.");
-            Console.WriteLine();
-            Console.WriteLine("  cleardata          - Clears all transactions from the terminal's memory");
-            Console.WriteLine("                       that have already been acknowledged.");
-            Console.WriteLine();
-            Console.WriteLine();
-            Console.WriteLine("  listen [port] [ack]");
-            Console.WriteLine("                     - Acts as a server, listening for incoming data.");
-            Console.WriteLine("                       Listens on port 3734 if not specified.");
-            Console.WriteLine("                       Optionally pass \"ack\" to acknowledge receipt.");
-            Console.WriteLine();
-            Console.WriteLine("Examples:");
-            Console.WriteLine("  SynUtil 1.2.3.4 getstatus");
-            Console.WriteLine("  SynUtil 1.2.3.4 -t0 getstatus");
-            Console.WriteLine("  SynUtil 1.2.3.4:3734 getstatus");
-            Console.WriteLine("  SynUtil 1.2.3.4:3734 -t0 getstatus");
-            Console.WriteLine();
+            var version = "v" + typeof (Program).Assembly.GetName().Version.ToString(3);
+            var helpText = Resources.Help.Replace("{version}", version);
+            Console.Write(helpText);
         }
 
         private static void GetStatus()

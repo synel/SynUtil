@@ -1,0 +1,63 @@
+SynUtil {version}
+Command-line utility for SY7xx terminals.
+Copyright (C) 2013, Synel Industries Ltd.
+
+Usage:
+  SynUtil <host>[:port] [-t<id>] [-v] <command> [arguments]
+or
+  SynUtil listen [port] [ack]
+
+Parameters:
+  host      - The IP or DNS name of the terminal.
+  port      - The TCP port to connect to.  Defaults to 3734.
+  -t<id>    - The terminal id to use.  Defaults to 0.
+  -v        - Emits verbose debugging information.
+  command   - The command to execute.
+  arguments - Any arguments required for the specific command.
+
+Commands:
+  getstatus          - Displays the terminal's status information.
+
+  gethardwareinfo    - Displays the terminal's hardware information.
+
+  getnetworkinfo     - Displays the terminal's network information.
+
+  getfingerprintinfo - Displays the terminal's fingerprint information.
+
+  settime [YYYY-MM-DD HH:MM:SS]
+                     - Sets the terminal's date and time.
+                       Pass the date and time desired, or leave blank
+                       to use the current date and time of this computer.
+
+  deletetable <tXXX> - Deletes a specific table from the terminal.
+
+  deletealltables    - Deletes all tables from the terminal.
+
+  fixmemcrash        - Erases all of the terminal's memory, which will
+                       put a terminal that is "Mem Crashed" back into
+                       "No Prog" mode.
+
+  upload <file1> [file2] [file3] [...] [-f]
+                     - Uploads one or more RDY files to the terminal.
+                       Supports wildcards and dirXXX files also.
+                       Pass -f to force upload of files that fail validation.
+
+  getdata            - Gets transaction data from the terminal.
+
+  resetdata          - Resets all transactions in the terminal's memory,
+                       so that they can be sent again.
+
+  cleardata          - Clears all transactions from the terminal's memory
+                       that have already been acknowledged.
+
+
+  listen [port] [ack]
+                     - Acts as a server, listening for incoming data.
+                       Listens on port 3734 if not specified.
+                       Optionally pass "ack" to acknowledge receipt.
+
+Examples:
+  SynUtil 1.2.3.4 getstatus
+  SynUtil 1.2.3.4 -t0 getstatus
+  SynUtil 1.2.3.4:3734 getstatus
+  SynUtil 1.2.3.4:3734 -t0 getstatus
