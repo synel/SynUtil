@@ -24,6 +24,15 @@ Commands:
 
   getfingerprintinfo - Displays the terminal's fingerprint information.
 
+  setfingermode <Master|Slave>
+                     - Sets the fingerprint unit mode.
+
+  setfingerthreshold <VeryHigh|High|Medium|Low|VeryLow>
+                     - Sets the fingerprint global threshold.
+
+  setfingerenrollment <Once|Twice|Dual>
+                     - Sets the fingerprint enrollment mode.
+
   settime [YYYY-MM-DD HH:MM:SS]
                      - Sets the terminal's date and time.
                        Pass the date and time desired, or leave blank

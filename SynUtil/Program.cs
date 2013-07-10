@@ -8,6 +8,7 @@ using System.Net.Sockets;
 using System.Threading;
 using SynUtil.Properties;
 using Syndll2;
+using Syndll2.Data;
 
 namespace SynUtil
 {
@@ -69,7 +70,7 @@ namespace SynUtil
 
                 // force flag
                 _force = args.Contains("-f", StringComparer.OrdinalIgnoreCase);
-                
+
                 // command
                 var command = args.Skip(1).First(x => !x.StartsWith("-"));
                 var commandIndex = Array.IndexOf(args, command);
@@ -89,6 +90,15 @@ namespace SynUtil
                         break;
                     case "getfingerprintinfo":
                         GetFingerprintInfo();
+                        break;
+                    case "setfingermode":
+                        SetFingerMode(commandArg);
+                        break;
+                    case "setfingerthreshold":
+                        SetFingerThreshold(commandArg);
+                        break;
+                    case "setfingerenrollment":
+                        SetFingerEnrollment(commandArg);
                         break;
                     case "settime":
                         SetTime(commandArgs);
@@ -149,7 +159,7 @@ namespace SynUtil
 
         private static void DisplayHelpText()
         {
-            var version = "v" + typeof (Program).Assembly.GetName().Version.ToString(3);
+            var version = "v" + typeof(Program).Assembly.GetName().Version.ToString(3);
             var helpText = Resources.Help.Replace("{version}", version);
             Console.Write(helpText);
         }
@@ -268,6 +278,57 @@ namespace SynUtil
                 Console.WriteLine("Global Threshold:  {0}", status.GlobalThreshold);
                 Console.WriteLine("Enroll Mode:       {0}", status.EnrollMode);
                 Console.WriteLine();
+            }
+        }
+
+        private static void SetFingerMode(string setting)
+        {
+            FingerprintUnitModes mode;
+            if (!Enum.TryParse(setting, true, out mode))
+            {
+                Console.WriteLine("Invalid mode.  Pass either \"Master\" or \"Slave\"");
+                return;
+            }
+
+            using (var client = SynelClient.Connect(_host, _port, _terminalId, Timeout))
+            using (var p = client.Terminal.Programming())
+            {
+                p.Fingerprint.SetUnitMode(mode);
+                Console.WriteLine("Set the fingerprint unit mode to {0}.", mode);
+            }
+        }
+
+        private static void SetFingerThreshold(string setting)
+        {
+            FingerprintThreshold threshold;
+            if (!Enum.TryParse(setting, true, out threshold))
+            {
+                Console.WriteLine("Invalid threshold.  Pass one of \"VeryHigh\", \"High\", \"Medium\", \"Low\" or \"VeryLow\"");
+                return;
+            }
+
+            using (var client = SynelClient.Connect(_host, _port, _terminalId, Timeout))
+            using (var p = client.Terminal.Programming())
+            {
+                p.Fingerprint.SetThreshold(threshold);
+                Console.WriteLine("Set the fingerprint global threshold to {0}.", threshold);
+            }
+        }
+
+        private static void SetFingerEnrollment(string setting)
+        {
+            FingerprintEnrollModes mode;
+            if (!Enum.TryParse(setting, true, out mode))
+            {
+                Console.WriteLine("Invalid mode.  Pass one of \"Once\", \"Twice\", or \"Dual\"");
+                return;
+            }
+
+            using (var client = SynelClient.Connect(_host, _port, _terminalId, Timeout))
+            using (var p = client.Terminal.Programming())
+            {
+                p.Fingerprint.SetEnrollMode(mode);
+                Console.WriteLine("Set the fingerprint enroll mode to {0}.", mode);
             }
         }
 
@@ -397,7 +458,7 @@ namespace SynUtil
                         var thisFilename = Path.GetFileName(file);
                         if (thisFilename == null || uniqueFiles.Contains(thisFilename, StringComparer.OrdinalIgnoreCase))
                             continue;
-                        
+
                         var thisPath = Path.Combine(fullDir, file);
                         p.UploadTableFromFile(thisPath, force: _force);
                     }
@@ -447,7 +508,7 @@ namespace SynUtil
                 {
                     Console.WriteLine("The terminal has no transaction data to send.");
                 }
-                
+
             }
         }
 
