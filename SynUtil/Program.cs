@@ -129,7 +129,7 @@ namespace SynUtil
 
                     /* Fingerprint Commands */
 
-                    case "getfingerprintinfo":
+                    case "getfingerinfo":
                         GetFingerprintInfo();
                         break;
                     case "setfingermode":

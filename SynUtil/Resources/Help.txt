@@ -54,7 +54,7 @@ Transaction Data Commands:
 
 Fingerprint Commands:
 
-  getfingerprintinfo - Displays the terminal's fingerprint information.
+  getfingerinfo - Displays the terminal's fingerprint information.
 
   setfingermode <Master|Slave>
                      - Sets the fingerprint unit mode.
