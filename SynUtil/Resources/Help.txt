@@ -15,28 +15,19 @@ Parameters:
   command   - The command to execute.
   arguments - Any arguments required for the specific command.
 
-Commands:
+Basic Commands:
   getstatus          - Displays the terminal's status information.
 
   gethardwareinfo    - Displays the terminal's hardware information.
 
   getnetworkinfo     - Displays the terminal's network information.
 
-  getfingerprintinfo - Displays the terminal's fingerprint information.
-
-  setfingermode <Master|Slave>
-                     - Sets the fingerprint unit mode.
-
-  setfingerthreshold <VeryHigh|High|Medium|Low|VeryLow>
-                     - Sets the fingerprint global threshold.
-
-  setfingerenrollment <Once|Twice|Dual>
-                     - Sets the fingerprint enrollment mode.
-
   settime [YYYY-MM-DD HH:MM:SS]
                      - Sets the terminal's date and time.
                        Pass the date and time desired, or leave blank
                        to use the current date and time of this computer.
+
+Programming Commands:
 
   deletetable <tXXX> - Deletes a specific table from the terminal.
 
@@ -51,6 +42,8 @@ Commands:
                        Supports wildcards and dirXXX files also.
                        Pass -f to force upload of files that fail validation.
 
+Transaction Data Commands:
+
   getdata            - Gets transaction data from the terminal.
 
   resetdata          - Resets all transactions in the terminal's memory,
@@ -59,6 +52,20 @@ Commands:
   cleardata          - Clears all transactions from the terminal's memory
                        that have already been acknowledged.
 
+Fingerprint Commands:
+
+  getfingerprintinfo - Displays the terminal's fingerprint information.
+
+  setfingermode <Master|Slave>
+                     - Sets the fingerprint unit mode.
+
+  setfingerthreshold <VeryHigh|High|Medium|Low|VeryLow>
+                     - Sets the fingerprint global threshold.
+
+  setfingerenrollment <Once|Twice|Dual>
+                     - Sets the fingerprint enrollment mode.
+
+Server Commands:
 
   listen [port] [ack]
                      - Acts as a server, listening for incoming data.

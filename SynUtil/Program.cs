@@ -79,6 +79,8 @@ namespace SynUtil
 
                 switch (command.ToLowerInvariant())
                 {
+                    /* Basic Commands */
+
                     case "getstatus":
                         GetStatus();
                         break;
@@ -88,6 +90,45 @@ namespace SynUtil
                     case "getnetworkinfo":
                         GetNetworkInfo();
                         break;
+                    case "settime":
+                        SetTime(commandArgs);
+                        break;
+
+                    /* Programming Commands */
+
+                    case "deletetable":
+                        if (string.IsNullOrEmpty(commandArg))
+                            Console.WriteLine("Pass the table type and id to delete.  Example:  deletetable x001");
+                        else
+                            DeleteTable(commandArg);
+                        break;
+                    case "deletealltables":
+                        DeleteAllTables();
+                        break;
+                    case "fixmemcrash":
+                        FixMemCrash();
+                        break;
+                    case "upload":
+                        if (string.IsNullOrEmpty(commandArg))
+                            Console.WriteLine("Pass the path(s) of the file(s) to upload.");
+                        else
+                            UploadFile(commandArgs);
+                        break;
+
+                    /* Transaction Data Commands */
+
+                    case "getdata":
+                        GetData();
+                        break;
+                    case "resetdata":
+                        ResetData();
+                        break;
+                    case "cleardata":
+                        ClearData();
+                        break;
+
+                    /* Fingerprint Commands */
+
                     case "getfingerprintinfo":
                         GetFingerprintInfo();
                         break;
@@ -100,36 +141,7 @@ namespace SynUtil
                     case "setfingerenrollment":
                         SetFingerEnrollment(commandArg);
                         break;
-                    case "settime":
-                        SetTime(commandArgs);
-                        break;
-                    case "fixmemcrash":
-                        FixMemCrash();
-                        break;
-                    case "deletealltables":
-                        DeleteAllTables();
-                        break;
-                    case "deletetable":
-                        if (string.IsNullOrEmpty(commandArg))
-                            Console.WriteLine("Pass the table type and id to delete.  Example:  deletetable x001");
-                        else
-                            DeleteTable(commandArg);
-                        break;
-                    case "upload":
-                        if (string.IsNullOrEmpty(commandArg))
-                            Console.WriteLine("Pass the path(s) of the file(s) to upload.");
-                        else
-                            UploadFile(commandArgs);
-                        break;
-                    case "getdata":
-                        GetData();
-                        break;
-                    case "resetdata":
-                        ResetData();
-                        break;
-                    case "cleardata":
-                        ClearData();
-                        break;
+
                     default:
                         {
                             Console.WriteLine("Unsupported command.");
