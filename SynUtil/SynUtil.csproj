@@ -36,7 +36,7 @@
   <ItemGroup>
     <Reference Include="Syndll2">
       <ILMerge>True</ILMerge>
-      <HintPath>..\packages\Syndll2.0.6.8-beta\lib\net40\Syndll2.dll</HintPath>
+      <HintPath>..\packages\Syndll2.0.9.0-beta\lib\net40\Syndll2.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -53,15 +53,13 @@
     <Compile Include="TimedConsoleTraceListener.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <None Include="packages.config" />
     <None Include="Resources\Help.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
