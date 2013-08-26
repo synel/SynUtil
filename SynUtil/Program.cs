@@ -233,14 +233,20 @@ namespace SynUtil
 
                     Console.Write("{0:yyyy-MM-dd HH:mm:sszzz} [{1}|{2}]  {3}",
                                   DateTimeOffset.Now,
-                                  notification.RemoteEndPoint.Address,
+                                  notification.Client.RemoteEndPoint.Address,
                                   notification.TerminalId,
                                   notification.Data);
 
                     if (acknowledge)
                     {
-                        notification.Acknowledege();
+                        if (notification.Type == NotificationType.Data)
+                            notification.Acknowledege();
+
+                        if (notification.Type == NotificationType.Query)
+                            notification.Reply(true, "OK", alignment: TextAlignment.Center);
+
                         Console.Write("  [ACKNOWLEDGED]");
+
                     }
 
                     Console.WriteLine();
