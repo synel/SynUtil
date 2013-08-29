@@ -224,8 +224,6 @@ namespace SynUtil
             Console.WriteLine("Listening on port {0}.  Press Ctrl-C to terminate.", _port);
             Console.WriteLine();
 
-            // todo: doesn't work on command prompt, but works in VS????
-
             using (SynelServer.Listen(_port, notification =>
                 {
                     if (notification.Data == null)
