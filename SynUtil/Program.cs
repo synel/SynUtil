@@ -241,7 +241,7 @@ namespace SynUtil
                             notification.Acknowledege();
 
                         if (notification.Type == NotificationType.Query)
-                            notification.Reply(true, "OK", alignment: TextAlignment.Center);
+                            notification.Reply(true, 0, "OK", TextAlignment.Center);
 
                         Console.Write("  [ACKNOWLEDGED]");
 
