@@ -114,6 +114,12 @@ namespace SynUtil
                         else
                             UploadFile(commandArgs);
                         break;
+                    case "halt":
+                        HaltTerminal();
+                        break;
+                    case "run":
+                        RunTerminal();
+                        break;
 
                     /* Transaction Data Commands */
 
@@ -521,6 +527,22 @@ namespace SynUtil
                 {
                     Console.CursorVisible = true;
                 }
+            }
+        }
+
+        private static void HaltTerminal()
+        {
+            using (var client = SynelClient.Connect(_host, _port, _terminalId, Timeout))
+            {
+                client.Terminal.Halt();
+            }
+        }
+
+        private static void RunTerminal()
+        {
+            using (var client = SynelClient.Connect(_host, _port, _terminalId, Timeout))
+            {
+                client.Terminal.Run();
             }
         }
 

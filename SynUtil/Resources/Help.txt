@@ -42,6 +42,10 @@ Programming Commands:
                        Supports wildcards and dirXXX files also.
                        Pass -f to force upload of files that fail validation.
 
+  halt               - Halts a terminal, putting it into programming mode.
+
+  run                - Puts the terminal into run mode.
+
 Transaction Data Commands:
 
   getdata            - Gets transaction data from the terminal.
