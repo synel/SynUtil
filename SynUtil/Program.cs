@@ -20,9 +20,13 @@ namespace SynUtil
         private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(15);
         private static bool _verbose;
         private static bool _force;
+        private static string _outputFile;
+        private static string _outputHeader;
 
         private static void Main(string[] args)
         {
+            Console.WriteLine("SynUtil " + GetVersion());
+
             try
             {
                 // verbose flag
@@ -70,6 +74,34 @@ namespace SynUtil
 
                 // force flag
                 _force = args.Contains("-f", StringComparer.OrdinalIgnoreCase);
+
+                // output flag
+                for (int i = 0; i < args.Length-1; i++)
+                {
+                    if (args[i].Equals("-o", StringComparison.OrdinalIgnoreCase))
+                    {
+                        _outputFile = args[i + 1];
+                        var l = args.ToList();
+                        l.RemoveAt(i);
+                        l.RemoveAt(i);
+                        args = l.ToArray();
+                        break;
+                    }
+                }
+
+                // output header
+                for (int i = 0; i < args.Length - 1; i++)
+                {
+                    if (args[i].Equals("-h", StringComparison.OrdinalIgnoreCase))
+                    {
+                        _outputHeader = args[i + 1];
+                        var l = args.ToList();
+                        l.RemoveAt(i);
+                        l.RemoveAt(i);
+                        args = l.ToArray();
+                        break;
+                    }
+                }
 
                 // command
                 var command = args.Skip(1).First(x => !x.StartsWith("-"));
@@ -189,13 +221,19 @@ namespace SynUtil
                 if (ex is TimeoutException)
                     Console.WriteLine("Be sure that you specified the correct host, port, and terminal ID.");
             }
+
         }
 
         private static void DisplayHelpText()
         {
-            var version = "v" + typeof(Program).Assembly.GetName().Version.ToString(3);
+            var version = GetVersion();
             var helpText = Resources.Help.Replace("{version}", version);
             Console.Write(helpText);
+        }
+
+        private static string GetVersion()
+        {
+            return "v" + typeof(Program).Assembly.GetName().Version.ToString(3);
         }
 
         private static void GetStatus()
@@ -203,39 +241,36 @@ namespace SynUtil
             using (var client = SynelClient.Connect(_host, _port, _terminalId, Timeout))
             {
                 var info = client.Terminal.GetTerminalStatus();
-                Console.WriteLine();
-                Console.WriteLine("Hardware Model:      {0}", info.HardwareModel);
-                Console.WriteLine("Hardware Revision:   {0}", info.HardwareRevision);
-                Console.WriteLine("Firmware Version:    {0}", info.FirmwareVersion);
-                Console.WriteLine("Terminal Type:       {0}", info.TerminalType);
-                Console.WriteLine("Current Time:        {0:g}", info.Timestamp);
-                Console.WriteLine("Active Function:     {0}", info.ActiveFunction);
-                Console.WriteLine("Powered On:          {0}", info.PoweredOn);
-                Console.WriteLine("Buffers Full:        {0}", info.BuffersFull);
-                Console.WriteLine("Buffers Faulty:      {0}", info.BuffersFaulty);
-                Console.WriteLine("Buffers Transmitted: {0}", info.BuffersTransmitted);
-                Console.WriteLine("Buffers Empty:       {0}", info.BuffersEmpty);
-                Console.WriteLine("Memory Used:         {0} bytes", info.MemoryUsed);
-                Console.WriteLine("Polling Interval:    {0} seconds", info.PollingInterval.TotalSeconds);
-                Console.WriteLine("Transport Type:      {0}", info.TransportType.ToString().ToUpperInvariant());
-                Console.WriteLine("FPU Mode:            {0}", info.FingerprintUnitMode);
-                Console.WriteLine("User Defined Field:  {0}", info.UserDefinedField);
-                Console.WriteLine();
+                ClearOutputFile();
+                OutputLine("Hardware Model:      {0}", info.HardwareModel);
+                OutputLine("Hardware Revision:   {0}", info.HardwareRevision);
+                OutputLine("Firmware Version:    {0}", info.FirmwareVersion);
+                OutputLine("Terminal Type:       {0}", info.TerminalType);
+                OutputLine("Current Time:        {0:g}", info.Timestamp);
+                OutputLine("Active Function:     {0}", info.ActiveFunction);
+                OutputLine("Powered On:          {0}", info.PoweredOn);
+                OutputLine("Buffers Full:        {0}", info.BuffersFull);
+                OutputLine("Buffers Faulty:      {0}", info.BuffersFaulty);
+                OutputLine("Buffers Transmitted: {0}", info.BuffersTransmitted);
+                OutputLine("Buffers Empty:       {0}", info.BuffersEmpty);
+                OutputLine("Memory Used:         {0} bytes", info.MemoryUsed);
+                OutputLine("Polling Interval:    {0} seconds", info.PollingInterval.TotalSeconds);
+                OutputLine("Transport Type:      {0}", info.TransportType.ToString().ToUpperInvariant());
+                OutputLine("FPU Mode:            {0}", info.FingerprintUnitMode);
+                OutputLine("User Defined Field:  {0}", info.UserDefinedField);
             }
         }
 
         private static void Listen(bool acknowledge)
         {
-            Console.WriteLine();
             Console.WriteLine("Listening on port {0}.  Press Ctrl-C to terminate.", _port);
-            Console.WriteLine();
 
             using (SynelServer.Listen(_port, notification =>
                 {
                     if (notification.Data == null)
                         return;
 
-                    Console.Write("{0:yyyy-MM-dd HH:mm:sszzz} [{1}|{2}]  {3}",
+                    Output("{0:yyyy-MM-dd HH:mm:sszzz} [{1}|{2}]  {3}",
                                   DateTimeOffset.Now,
                                   notification.Client.RemoteEndPoint.Address,
                                   notification.TerminalId,
@@ -249,11 +284,11 @@ namespace SynUtil
                         if (notification.Type == NotificationType.Query)
                             notification.Reply(true, 0, "OK", TextAlignment.Center);
 
-                        Console.Write("  [ACKNOWLEDGED]");
+                        Output("  [ACKNOWLEDGED]");
 
                     }
 
-                    Console.WriteLine();
+                    OutputLine();
                 }))
             {
                 Thread.Sleep(-1);
@@ -265,17 +300,16 @@ namespace SynUtil
             using (var client = SynelClient.Connect(_host, _port, _terminalId, Timeout))
             {
                 var info = client.Terminal.GetHardwareConfiguration();
-                Console.WriteLine();
-                Console.WriteLine("Terminal ID:         {0}", info.TerminalId);
-                Console.WriteLine("Terminal Type:       {0}", info.TerminalType);
-                Console.WriteLine("Firmware Version:    {0} ({1:d})", info.FirmwareVersion, info.FirmwareDate);
-                Console.WriteLine("Keyboard Type:       {0}", info.KeyboardType);
-                Console.WriteLine("Display Type:        {0}", info.DisplayType);
-                Console.WriteLine("FPU Type:            {0}", info.FingerprintUnitType);
-                Console.WriteLine("FPU Mode:            {0}", info.FingerprintUnitMode);
-                Console.WriteLine("Serial Port Info:    {0} {1}", info.HostSerialBaudRate, info.HostSerialParameters.ToUpperInvariant());
-                Console.WriteLine("User Defined Field:  {0}", info.UserDefinedField);
-                Console.WriteLine();
+                ClearOutputFile();
+                OutputLine("Terminal ID:         {0}", info.TerminalId);
+                OutputLine("Terminal Type:       {0}", info.TerminalType);
+                OutputLine("Firmware Version:    {0} ({1:d})", info.FirmwareVersion, info.FirmwareDate);
+                OutputLine("Keyboard Type:       {0}", info.KeyboardType);
+                OutputLine("Display Type:        {0}", info.DisplayType);
+                OutputLine("FPU Type:            {0}", info.FingerprintUnitType);
+                OutputLine("FPU Mode:            {0}", info.FingerprintUnitMode);
+                OutputLine("Serial Port Info:    {0} {1}", info.HostSerialBaudRate, info.HostSerialParameters.ToUpperInvariant());
+                OutputLine("User Defined Field:  {0}", info.UserDefinedField);
             }
         }
 
@@ -284,20 +318,19 @@ namespace SynUtil
             using (var client = SynelClient.Connect(_host, _port, _terminalId, Timeout))
             {
                 var info = client.Terminal.GetNetworkConfiguration();
-                Console.WriteLine();
-                Console.WriteLine("Network Card:        {0} (ver {1})", info.NetworkCardType, info.NetworkCardFirmwareVersion);
-                Console.WriteLine("Transport Type:      {0}", info.TransportType.ToString().ToUpperInvariant());
-                Console.WriteLine("MAC Address:         {0}", info.TerminalMACAddress);
-                Console.WriteLine("IP Address/Port:     {0}:{1}", info.TerminalIPAddress, info.TerminalPort);
-                Console.WriteLine("Remote Address/Port: {0}:{1}", info.RemoteIPAddress, info.RemotePort);
-                Console.WriteLine("Subnet Mask:         {0}", info.SubnetMask);
-                Console.WriteLine("Gateway Address:     {0}", info.GatewayIPAddress);
-                Console.WriteLine("Disconnect Time:     {0} seconds", info.DisconnectTime.TotalSeconds);
-                Console.WriteLine("Polling Interval:    {0} seconds", info.PollingInterval.TotalSeconds);
-                Console.WriteLine("Polling Enabled:     {0}", info.EnablePolling);
-                Console.WriteLine("DHCP Enabled:        {0}", info.EnableDHCP);
-                Console.WriteLine("MAC Sending Enabled: {0}", info.EnableSendMAC);
-                Console.WriteLine();
+                ClearOutputFile();
+                OutputLine("Network Card:        {0} (ver {1})", info.NetworkCardType, info.NetworkCardFirmwareVersion);
+                OutputLine("Transport Type:      {0}", info.TransportType.ToString().ToUpperInvariant());
+                OutputLine("MAC Address:         {0}", info.TerminalMACAddress);
+                OutputLine("IP Address/Port:     {0}:{1}", info.TerminalIPAddress, info.TerminalPort);
+                OutputLine("Remote Address/Port: {0}:{1}", info.RemoteIPAddress, info.RemotePort);
+                OutputLine("Subnet Mask:         {0}", info.SubnetMask);
+                OutputLine("Gateway Address:     {0}", info.GatewayIPAddress);
+                OutputLine("Disconnect Time:     {0} seconds", info.DisconnectTime.TotalSeconds);
+                OutputLine("Polling Interval:    {0} seconds", info.PollingInterval.TotalSeconds);
+                OutputLine("Polling Enabled:     {0}", info.EnablePolling);
+                OutputLine("DHCP Enabled:        {0}", info.EnableDHCP);
+                OutputLine("MAC Sending Enabled: {0}", info.EnableSendMAC);
             }
         }
 
@@ -307,15 +340,14 @@ namespace SynUtil
             using (var p = client.Terminal.Programming())
             {
                 var status = p.Fingerprint.GetUnitStatus();
-                Console.WriteLine();
-                Console.WriteLine("Comparison Mode:   {0}", status.ComparisonMode);
-                Console.WriteLine("Kernel Version:    {0}", new object[] { status.KernelVersion });
-                Console.WriteLine("Loaded Templates:  {0}", status.LoadedTemplates);
-                Console.WriteLine("Maximum Templates: {0}", status.MaximumTemplates);
-                Console.WriteLine("FPU Mode:          {0}", status.FingerprintUnitMode);
-                Console.WriteLine("Global Threshold:  {0}", status.GlobalThreshold);
-                Console.WriteLine("Enroll Mode:       {0}", status.EnrollMode);
-                Console.WriteLine();
+                ClearOutputFile();
+                OutputLine("Comparison Mode:   {0}", status.ComparisonMode);
+                OutputLine("Kernel Version:    {0}", new object[] { status.KernelVersion });
+                OutputLine("Loaded Templates:  {0}", status.LoadedTemplates);
+                OutputLine("Maximum Templates: {0}", status.MaximumTemplates);
+                OutputLine("FPU Mode:          {0}", status.FingerprintUnitMode);
+                OutputLine("Global Threshold:  {0}", status.GlobalThreshold);
+                OutputLine("Enroll Mode:       {0}", status.EnrollMode);
             }
         }
 
@@ -416,7 +448,6 @@ namespace SynUtil
         {
             if (tableName.Length != 4)
             {
-                Console.WriteLine();
                 Console.WriteLine("Invalid table name.");
                 return;
             }
@@ -425,7 +456,6 @@ namespace SynUtil
             int id;
             if (!int.TryParse(tableName.Substring(1), out id))
             {
-                Console.WriteLine();
                 Console.WriteLine("Invalid table name.");
                 return;
             }
@@ -434,7 +464,6 @@ namespace SynUtil
             using (var p = client.Terminal.Programming())
             {
                 p.DeleteTable(type, id);
-                Console.WriteLine();
                 Console.WriteLine("Sent command to delete table {0} from the terminal.", tableName);
             }
         }
@@ -445,7 +474,6 @@ namespace SynUtil
             using (var p = client.Terminal.Programming())
             {
                 p.DeleteAllTables();
-                Console.WriteLine();
                 Console.WriteLine("Sent command to delete all tables from the terminal.");
             }
         }
@@ -456,7 +484,6 @@ namespace SynUtil
             using (var p = client.Terminal.Programming())
             {
                 p.FixMemCrash();
-                Console.WriteLine();
                 Console.WriteLine("Sent command to fix terminal memcrash.");
             }
         }
@@ -570,12 +597,11 @@ namespace SynUtil
         {
             using (var client = SynelClient.Connect(_host, _port, _terminalId, Timeout))
             {
-                Console.WriteLine();
                 string item;
                 bool gotData = false;
                 while ((item = client.Terminal.GetDataAndAcknowledge()) != null)
                 {
-                    Console.WriteLine(item);
+                    OutputLine(item);
                     gotData = true;
                 }
                 if (!gotData)
@@ -591,7 +617,6 @@ namespace SynUtil
             using (var client = SynelClient.Connect(_host, _port, _terminalId, Timeout))
             {
                 client.Terminal.ResetBuffer();
-                Console.WriteLine();
                 Console.WriteLine("Data has been reset.");
             }
         }
@@ -601,9 +626,45 @@ namespace SynUtil
             using (var client = SynelClient.Connect(_host, _port, _terminalId, Timeout))
             {
                 client.Terminal.ClearBuffer();
-                Console.WriteLine();
                 Console.WriteLine("Data has been cleared.");
             }
+        }
+
+        private static void OutputLine()
+        {
+            Output(Environment.NewLine);
+        }
+
+        private static void OutputLine(string s, params object[] args)
+        {
+            Output(s + Environment.NewLine, args);
+        }
+
+        private static void Output(string s, params object[] args)
+        {
+            if (_outputHeader != null)
+            {
+                var header = _outputHeader;
+                _outputHeader = null;
+                OutputLine(header);
+            }
+
+            var output = string.Format(s, args);
+
+            if (_outputFile != null)
+            {
+                File.AppendAllText(_outputFile, output);
+            }
+            else
+            {
+                Console.Write(output);
+            }
+        }
+
+        private static void ClearOutputFile()
+        {
+            if (_outputFile != null && File.Exists(_outputFile))
+                File.Delete(_outputFile);
         }
     }
 }
