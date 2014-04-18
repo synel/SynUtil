@@ -500,10 +500,10 @@ namespace SynUtil
                 foreach (var path in paths)
                 {
                     var directory = Path.GetDirectoryName(path);
-                    var pattern = Path.GetFileName(path);
-
-                    if (directory == null || pattern == null)
+                    if (directory == null)
                         continue;
+
+                    var pattern = Path.GetFileName(path);
 
                     // get files, sorting directory files first.
                     var fullDir = Path.GetFullPath(directory);
