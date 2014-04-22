@@ -3,7 +3,8 @@ Command-line utility for SY7xx terminals.
 Copyright (C) 2013, Synel Industries Ltd.
 
 Usage:
-  SynUtil <host>[:port] [-t<id>] [-v] <command> [arguments] [-o <file>] [-h <text>]
+  SynUtil <host>[:port] [-t<id>] [-v] <command> [arguments]
+                        [-o <file>] [-h <text>]
 or
   SynUtil listen [port] [ack]
 
@@ -74,11 +75,11 @@ Fingerprint Commands:
   listfingers        - Lists the fingerprint templates that are on the terminal.
 
   getfinger <badgenumber|all> [directory]
-                     - Gets any fingerprint templates for the given badge number.
-                       Pass "all" to get all fingerprint templates on the terminal.
-                       Optionally pass a directory of where the fingerprint
-                       files should be written to.  (Defaults to the current
-                       directory if not specified.)
+                     - Gets any fingerprint templates for the given badge
+                       number.  Pass "all" to get all fingerprint templates on
+                       the terminal.  Optionally pass a directory of where the
+                       fingerprint files should be written to.  (Defaults to
+                       the current directory if not specified.)
 
   sendfinger <file1> [file2] [file3] [...]
                      - Sends one or more fingerprint templates to the terminal.
