@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <Product Id="*" Name="SynUtil" Language="1033" Version="1.11.0.30" Manufacturer="Time America, Inc." UpgradeCode="d675d121-14be-49b1-b27f-b85dd7dbbf4b">
+    <Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
+
+    <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
+    <Media Id="1" Cabinet="program.cab" EmbedCab="yes" />
+
+    <Property Id="WIXUI_INSTALLDIR" Value="INSTALLFOLDER" />
+    <UIRef Id="WixUI_InstallDir" />
+
+    <UI>
+
+      <!-- Skip license dialog -->
+      <Publish Dialog="WelcomeDlg"
+               Control="Next"
+               Event="NewDialog"
+               Value="InstallDirDlg"
+               Order="2">1</Publish>
+      <Publish Dialog="InstallDirDlg"
+               Control="Back"
+               Event="NewDialog"
+               Value="WelcomeDlg"
+               Order="2">1</Publish>
+    </UI>
+
+    <Feature Id="ProductFeature" Title="SynUtil" Level="1">
+      <ComponentGroupRef Id="ProductComponents" />
+      <ComponentRef Id="ApplicationShortcut" />
+    </Feature>
+  </Product>
+
+  <Fragment>
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <Directory Id="ProgramFilesFolder">
+        <Directory Id="INSTALLFOLDER" Name="SynUtil" />
+      </Directory>
+      <Directory Id="ProgramMenuFolder">
+        <Directory Id="ApplicationProgramsFolder" Name="SynUtil"/>
+      </Directory>
+    </Directory>
+
+    <DirectoryRef Id="ApplicationProgramsFolder">
+      <Component Id="ApplicationShortcut" Guid="F8338545-BD5F-4F52-B22E-ED149FAC60FD">
+        <Shortcut Id="ApplicationStartMenuShortcut"
+                  Name="SynUtil Command Prompt"
+                  Target="[%ComSpec]"
+                  WorkingDirectory="INSTALLFOLDER"/>
+        <RemoveFolder Id="ApplicationProgramsFolder" On="uninstall"/>
+        <RegistryValue Root="HKCU" Key="Software\Synel\SynUtil" Name="installed" Type="integer" Value="1" KeyPath="yes"/>
+      </Component>
+    </DirectoryRef>
+  </Fragment>
+
+  <Fragment>
+    <ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
+      <Component Id="ProductComponent">
+        <File Source="$(var.SynUtil.TargetPath)" />
+      </Component>
+    </ComponentGroup>
+  </Fragment>
+</Wix>

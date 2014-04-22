@@ -1,0 +1,63 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
+    <ProductVersion>3.8</ProductVersion>
+    <ProjectGuid>ebf9bfe4-f5b6-48bf-87e2-7d7689ab32fd</ProjectGuid>
+    <SchemaVersion>2.0</SchemaVersion>
+    <OutputName>Setup</OutputName>
+    <OutputType>Package</OutputType>
+    <SignOutput>true</SignOutput>
+    <WixTargetsPath Condition=" '$(WixTargetsPath)' == '' AND '$(MSBuildExtensionsPath32)' != '' ">$(MSBuildExtensionsPath32)\Microsoft\WiX\v3.x\Wix.targets</WixTargetsPath>
+    <WixTargetsPath Condition=" '$(WixTargetsPath)' == '' ">$(MSBuildExtensionsPath)\Microsoft\WiX\v3.x\Wix.targets</WixTargetsPath>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
+    <OutputPath>bin\$(Configuration)\</OutputPath>
+    <IntermediateOutputPath>obj\$(Configuration)\</IntermediateOutputPath>
+    <DefineConstants>Debug</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
+    <OutputPath>bin\$(Configuration)\</OutputPath>
+    <IntermediateOutputPath>obj\$(Configuration)\</IntermediateOutputPath>
+    <SuppressPdbOutput>True</SuppressPdbOutput>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Product.wxs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\SynUtil\SynUtil.csproj">
+      <Name>SynUtil</Name>
+      <Project>{cc09d650-482e-46a3-b1a1-7b8373a20dd5}</Project>
+      <Private>True</Private>
+      <DoNotHarvest>True</DoNotHarvest>
+      <RefProjectOutputGroups>Binaries;Content;Satellites</RefProjectOutputGroups>
+      <RefTargetDir>INSTALLFOLDER</RefTargetDir>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <WixExtension Include="WixUIExtension">
+      <HintPath>$(WixExtDir)\WixUIExtension.dll</HintPath>
+      <Name>WixUIExtension</Name>
+    </WixExtension>
+  </ItemGroup>
+  <Import Project="$(WixTargetsPath)" />
+  <Target Name="SignMsi">
+    <GetFrameworkSdkPath>
+      <Output TaskParameter="Path" PropertyName="SdkPath" />
+    </GetFrameworkSdkPath>
+    <Message Importance="high" Text="In SignMsi Target" />
+    <Message Importance="high" Text="Configuration:  $(Configuration)" />
+    <Message Importance="high" Text="TargetPath:  $(TargetPath)" />
+    <Message Importance="high" Text="SdkPath:  $(SdkPath)" />
+    <Exec Condition="'$(TargetPath)' != '' AND '$(Configuration)' == 'Release'" WorkingDirectory="$(SdkPath)..\v7.1A\Bin" Command="signtool.exe sign /sha1 3eb3620ad98c8ffef17fa77ae408caf5bfebaf19 /t http://timestamp.verisign.com/scripts/timstamp.dll /d &quot;SynUtil Setup&quot; &quot;$(TargetPath)&quot;" />
+  </Target>
+  <!--
+  To modify your build process, add your task inside one of the targets below and uncomment it.
+  Other similar extension points exist, see Wix.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
