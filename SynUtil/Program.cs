@@ -263,36 +263,44 @@ namespace SynUtil
 
         private static void Listen(bool acknowledge)
         {
-            Console.WriteLine("Listening on port {0}.  Press Ctrl-C to terminate.", _port);
+            var server = new SynelServer(_port);
 
-            using (SynelServer.Listen(_port, notification =>
-                {
-                    if (notification.Data == null)
-                        return;
-
-                    Output("{0:yyyy-MM-dd HH:mm:sszzz} [{1}|{2}]  {3}",
-                                  DateTimeOffset.Now,
-                                  notification.Client.RemoteEndPoint.Address,
-                                  notification.TerminalId,
-                                  notification.Data);
-
-                    if (acknowledge)
-                    {
-                        if (notification.Type == NotificationType.Data)
-                            notification.Acknowledege();
-
-                        if (notification.Type == NotificationType.Query)
-                            notification.Reply(true, 0, "OK", TextAlignment.Center);
-
-                        Output("  [ACKNOWLEDGED]");
-
-                    }
-
-                    OutputLine();
-                }))
+            server.MessageReceived += (sender, args) =>
             {
-                Thread.Sleep(-1);
-            }
+                var notification = args.Notification;
+                if (notification == null || notification.Data == null)
+                    return;
+
+                Output("{0:yyyy-MM-dd HH:mm:sszzz} [{1}|{2}]  {3}",
+                    DateTimeOffset.Now,
+                    notification.Client.RemoteEndPoint.Address,
+                    notification.TerminalId,
+                    notification.Data);
+
+                if (acknowledge)
+                {
+                    if (notification.Type == NotificationType.Data)
+                        notification.Acknowledege();
+
+                    if (notification.Type == NotificationType.Query)
+                        notification.Reply(true, 0, "OK", TextAlignment.Center);
+
+                    Output("  [ACKNOWLEDGED]");
+                }
+
+                OutputLine();
+            };
+
+            var cts = new CancellationTokenSource();
+            Console.CancelKeyPress += (sender, args) =>
+            {
+                cts.Cancel();
+                args.Cancel = true;
+                Console.WriteLine("Stopped listening.");
+            };
+
+            Console.WriteLine("Listening on port {0}.  Press Ctrl-C to terminate.", _port);
+            server.ListenAsync(cts.Token).Wait(cts.Token);
         }
 
         private static void GetHardwareInfo()
