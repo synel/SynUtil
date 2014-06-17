@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.30110.0
+VisualStudioVersion = 12.0.30501.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SynUtil", "SynUtil\SynUtil.csproj", "{CC09D650-482E-46A3-B1A1-7B8373A20DD5}"
 EndProject
@@ -41,7 +41,6 @@ Global
 		{CC09D650-482E-46A3-B1A1-7B8373A20DD5}.Release|x86.ActiveCfg = Release|Any CPU
 		{EBF9BFE4-F5B6-48BF-87E2-7D7689AB32FD}.Debug|Any CPU.ActiveCfg = Debug|x86
 		{EBF9BFE4-F5B6-48BF-87E2-7D7689AB32FD}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
-		{EBF9BFE4-F5B6-48BF-87E2-7D7689AB32FD}.Debug|Mixed Platforms.Build.0 = Debug|x86
 		{EBF9BFE4-F5B6-48BF-87E2-7D7689AB32FD}.Debug|x86.ActiveCfg = Debug|x86
 		{EBF9BFE4-F5B6-48BF-87E2-7D7689AB32FD}.Debug|x86.Build.0 = Debug|x86
 		{EBF9BFE4-F5B6-48BF-87E2-7D7689AB32FD}.Release|Any CPU.ActiveCfg = Release|x86
