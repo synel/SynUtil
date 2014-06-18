@@ -534,12 +534,14 @@ namespace SynUtil
 
                 foreach (var path in paths)
                 {
-                    var directory = Path.GetDirectoryName(path);
-                    if (directory == null)
+                    var pattern = Path.GetFileName(path);
+                    if (pattern == null)
                         continue;
 
-                    var pattern = Path.GetFileName(path);
-
+                    var directory = path.Substring(0, path.Length - pattern.Length);
+                    if (directory == string.Empty)
+                        directory = ".";
+                    
                     // get files, sorting directory files first.
                     var fullDir = Path.GetFullPath(directory);
                     var files = Directory.GetFiles(fullDir, pattern)
